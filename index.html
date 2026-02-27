@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Análisis CX L2 Backoffice | Cashea</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0a0e27;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, rgba(139, 92, 246, 0.15) 0px, transparent 50%);
+            padding: 20px;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 24px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899);
+        }
+
+        .header h1 {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 3em;
+            font-weight: 800;
+            margin-bottom: 12px;
+            letter-spacing: -0.02em;
+        }
+
+        .header p {
+            color: #94a3b8;
+            font-size: 1.15em;
+            font-weight: 400;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 32px;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(139, 92, 246, 0.4);
+            box-shadow: 0 20px 60px rgba(139, 92, 246, 0.3);
+        }
+
+        .stat-card:hover::before {
+            opacity: 1;
+        }
+
+        .stat-number {
+            font-size: 3.5em;
+            font-weight: 800;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat-label {
+            color: #cbd5e1;
+            font-size: 1.1em;
+            font-weight: 500;
+            margin-top: 12px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .section {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 36px;
+            border-radius: 24px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .section h2 {
+            color: #f1f5f9;
+            font-size: 2em;
+            font-weight: 700;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid rgba(139, 92, 246, 0.3);
+            letter-spacing: -0.01em;
+        }
+
+        .friction-item {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 24px;
+            border-radius: 16px;
+            margin-bottom: 16px;
+            border-left: 4px solid #ef4444;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .friction-item:hover {
+            transform: translateX(8px);
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .friction-item.high {
+            border-left-color: #ef4444;
+        }
+
+        .friction-item.medium {
+            border-left-color: #f59e0b;
+        }
+
+        .friction-item.low {
+            border-left-color: #3b82f6;
+        }
+
+        .friction-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            gap: 16px;
+        }
+
+        .friction-title {
+            font-weight: 600;
+            font-size: 1.2em;
+            color: #f1f5f9;
+            letter-spacing: -0.01em;
+        }
+
+        .friction-badge {
+            padding: 6px 16px;
+            border-radius: 24px;
+            color: white;
+            font-size: 0.85em;
+            font-weight: 600;
+            white-space: nowrap;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .badge-high {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
+        .badge-medium {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+
+        .badge-low {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+        }
+
+        .friction-item p {
+            color: #cbd5e1;
+            line-height: 1.7;
+            margin-top: 8px;
+        }
+
+        .friction-item strong {
+            color: #e2e8f0;
+        }
+
+        .proposal-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 24px;
+            border-radius: 16px;
+            margin-bottom: 16px;
+            border-left: 4px solid #10b981;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .proposal-card:hover {
+            transform: translateX(8px);
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 12px 40px rgba(16, 185, 129, 0.2);
+        }
+
+        .proposal-title {
+            font-weight: 600;
+            font-size: 1.15em;
+            color: #f1f5f9;
+            margin-bottom: 12px;
+            letter-spacing: -0.01em;
+        }
+
+        .proposal-meta {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .proposal-tag {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+
+        .tag-type {
+            background: rgba(59, 130, 246, 0.2);
+            color: #93c5fd;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .tag-impact {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .proposal-card p {
+            color: #cbd5e1;
+            line-height: 1.7;
+        }
+
+        .proposal-card strong {
+            color: #e2e8f0;
+        }
+
+        .roadmap-timeline {
+            position: relative;
+            padding-left: 48px;
+        }
+
+        .roadmap-timeline::before {
+            content: '';
+            position: absolute;
+            left: 16px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(180deg, #6366f1, #8b5cf6, transparent);
+        }
+
+        .roadmap-item {
+            position: relative;
+            padding: 28px;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            margin-bottom: 24px;
+            border-left: 4px solid #6366f1;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .roadmap-item:hover {
+            background: rgba(255, 255, 255, 0.06);
+            transform: translateX(4px);
+            box-shadow: 0 12px 40px rgba(99, 102, 241, 0.2);
+        }
+
+        .roadmap-item::before {
+            content: '';
+            position: absolute;
+            left: -36px;
+            top: 32px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border: 3px solid #0a0e27;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+            z-index: 1;
+        }
+
+        .roadmap-phase {
+            display: inline-block;
+            padding: 8px 18px;
+            border-radius: 24px;
+            font-weight: 700;
+            font-size: 0.85em;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .phase-immediate {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        .phase-short {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
+
+        .phase-medium {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .roadmap-item h3 {
+            color: #f1f5f9;
+            font-weight: 600;
+        }
+
+        .roadmap-item ul {
+            color: #cbd5e1;
+        }
+
+        .roadmap-item li {
+            margin-bottom: 8px;
+        }
+
+        .roadmap-item p {
+            color: #94a3b8;
+        }
+
+        .roadmap-item strong {
+            color: #e2e8f0;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .grid-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 968px) {
+            .grid-2col {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+
+        .key-insight {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2));
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            color: #f1f5f9;
+            padding: 32px;
+            border-radius: 20px;
+            margin: 24px 0;
+            font-size: 1.05em;
+            line-height: 1.8;
+            box-shadow: 0 12px 40px rgba(139, 92, 246, 0.2);
+        }
+
+        .key-insight strong {
+            font-size: 1.3em;
+            display: block;
+            margin-bottom: 12px;
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 14px 28px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            color: #cbd5e1;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .tab:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(139, 92, 246, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .impact-stars {
+            color: #fbbf24;
+            font-size: 1.1em;
+        }
+
+        .details {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 16px;
+            border-radius: 12px;
+            margin-top: 16px;
+        }
+
+        .details ul {
+            color: #cbd5e1;
+        }
+
+        .details li {
+            margin-bottom: 8px;
+        }
+
+        .details strong {
+            color: #e2e8f0;
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(139, 92, 246, 0.5);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(139, 92, 246, 0.7);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>📊 Dashboard CX - Backoffice L2</h1>
+            <p>Análisis de Experiencia y Puntos de Fricción | Cashea FinTech | Febrero 2026</p>
+        </div>
+
+        <!-- Stats Overview -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">13</div>
+                <div class="stat-label">Analistas Entrevistados</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">5</div>
+                <div class="stat-label">Procesos Analizados</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">6</div>
+                <div class="stat-label">Puntos de Fricción Críticos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">9</div>
+                <div class="stat-label">Propuestas de Mejora</div>
+            </div>
+        </div>
+
+        <!-- Tabs Navigation -->
+        <div class="section">
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('overview')">📈 Resumen</button>
+                <button class="tab" onclick="showTab('friction')">🔴 Puntos de Fricción</button>
+                <button class="tab" onclick="showTab('proposals')">💡 Propuestas</button>
+                <button class="tab" onclick="showTab('roadmap')">🗓️ Roadmap</button>
+            </div>
+
+            <!-- Overview Tab -->
+            <div id="overview" class="tab-content active">
+                <h2>Distribución de Procesos</h2>
+                <div class="grid-2col">
+                    <div class="chart-container">
+                        <canvas id="processChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="frictionChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="key-insight">
+                    <strong>💡 Hallazgo Clave</strong>
+                    El equipo L2 no tiene un problema de capacidad o conocimiento — tiene un problema de calidad de insumo (información que recibe de L1) y un problema de eficiencia en tareas administrativas (automatización pendiente). Resolver estos dos vectores libera inmediatamente capacidad operativa sin necesidad de ampliar el equipo.
+                </div>
+
+                <h2 style="margin-top: 30px;">Procesos Evaluados</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" style="font-size: 2em;">3</div>
+                        <div class="stat-label">Pagos No Encontrados</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" style="font-size: 2em;">4</div>
+                        <div class="stat-label">Reembolsos</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" style="font-size: 2em;">2</div>
+                        <div class="stat-label">GOC</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" style="font-size: 2em;">2</div>
+                        <div class="stat-label">Pagos Otros Bancos</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" style="font-size: 2em;">2</div>
+                        <div class="stat-label">Cashea Online / Incidencias</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Friction Points Tab -->
+            <div id="friction" class="tab-content">
+                <h2>Puntos de Fricción Identificados</h2>
+                
+                <div class="friction-item high" onclick="toggleDetails(this)">
+                    <div class="friction-header">
+                        <div class="friction-title">🔴 F-01: Escalados incompletos desde L1</div>
+                        <span class="friction-badge badge-high">ALTA FRECUENCIA</span>
+                    </div>
+                    <p><strong>Impacto:</strong> Principal cuello de botella - mencionado por 10 de 13 analistas</p>
+                    <p><strong>Procesos afectados:</strong> Todos</p>
+                    <div class="details" style="margin-top: 15px; display: none;">
+                        <p>📋 <strong>Datos faltantes comunes:</strong></p>
+                        <ul style="margin-left: 20px; margin-top: 10px; line-height: 1.8;">
+                            <li><strong>PNE/POB:</strong> Movimiento bancario, comprobante detallado, datos del titular</li>
+                            <li><strong>Reembolsos:</strong> Número de cuenta incompleto, errores de tipeo</li>
+                            <li><strong>GOC:</strong> Tickets mal categorizados, número de cédula ausente</li>
+                            <li><strong>Incidencias:</strong> Folio incorrecto, casos que no son incidencias</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="friction-item high" onclick="toggleDetails(this)">
+                    <div class="friction-header">
+                        <div class="friction-title">🔴 F-02: Dependencia de terceros (Aliados/Bancos)</div>
+                        <span class="friction-badge badge-high">ALTA FRECUENCIA</span>
+                    </div>
+                    <p><strong>Impacto:</strong> Tickets abiertos +15 días esperando respuesta</p>
+                    <p><strong>Procesos afectados:</strong> GOC, Pagos Otros Bancos, Cashea Online</p>
+                    <div class="details" style="margin-top: 15px; display: none;">
+                        <p>⏱️ No existe protocolo de resolución autónoma ante silencio del tercero, generando acumulación de carga operativa y frustración del usuario final.</p>
+                    </div>
+                </div>
+
+                <div class="friction-item medium" onclick="toggleDetails(this)">
+                    <div class="friction-header">
+                        <div class="friction-title">🟠 F-03: Tareas manuales repetitivas</div>
+                        <span class="friction-badge badge-medium">6 ANALISTAS</span>
+                    </div>
+                    <p><strong>Impacto:</strong> +2,000 casos mensuales procesados manualmente</p>
+                    <p><strong>Procesos afectados:</strong> Reembolsos, PNE</p>
+                    <div class="details" style="margin-top: 15px; display: none;">
+                        <p>🔧 <strong>Tareas manuales críticas:</strong></p>
+                        <ul style="margin-left: 20px; margin-top: 10px; line-height: 1.8;">
+                            <li>Registro individual de reembolsos en Retool</li>
+                            <li>Envío manual de macro uno a uno</li>
+                            <li>Vinculación manual de links Slack/Intercom</li>
+                            <li>Actualización del sheet de rezagados</li>
+                            <li>Cierre individual de tickets</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="friction-item medium" onclick="toggleDetails(this)">
+                    <div class="friction-header">
+                        <div class="friction-title">🟠 F-04: Lentitud en herramientas tecnológicas</div>
+                        <span class="friction-badge badge-medium">MEDIA</span>
+                    </div>
+                    <p><strong>Impacto:</strong> Afecta flujo de trabajo diario</p>
+                    <p><strong>Herramientas:</strong> Retool, Intercom, Google Sheets</p>
+                    <div class="details" style="margin-top: 15px; display: none;">
+                        <p>💻 <strong>Problemas reportados:</strong></p>
+                        <ul style="margin-left: 20px; margin-top: 10px; line-height: 1.8;">
+                            <li><strong>Retool:</strong> Tiempos de carga prolongados (3 analistas)</li>
+                            <li><strong>Intercom:</strong> Lentitud general, sin cierre masivo (4 analistas)</li>
+                            <li><strong>Google Sheets:</strong> Fricción en búsqueda de datos</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="friction-item low" onclick="toggleDetails(this)">
+                    <div class="friction-header">
+                        <div class="friction-title">🔵 F-05: Bandeja sin segmentación de estados</div>
+                        <span class="friction-badge badge-low">BAJA</span>
+                    </div>
+                    <p><strong>Impacto:</strong> Dificulta priorización de tickets</p>
+                    <p><strong>Procesos afectados:</strong> Pagos Otros Bancos, GOC</p>
+                    <div class="details" style="margin-top: 15px; display: none;">
+                        <p>📬 Tickets nuevos y tickets en espera conviven en la misma bandeja, generando confusión y posibles omisiones.</p>
+                    </div>
+                </div>
+
+                <div class="friction-item low" onclick="toggleDetails(this)">
+                    <div class="friction-header">
+                        <div class="friction-title">🔵 F-06: Sin herramienta de verificación de aliados</div>
+                        <span class="friction-badge badge-low">2 ANALISTAS</span>
+                    </div>
+                    <p><strong>Impacto:</strong> Incertidumbre al escalar casos</p>
+                    <p><strong>Procesos afectados:</strong> Pagos Otros Bancos, Incidencias Aliados</p>
+                    <div class="details" style="margin-top: 15px; display: none;">
+                        <p>🔍 No existe herramienta centralizada para verificar razón social, RIF o nombre comercial de aliados.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Proposals Tab -->
+            <div id="proposals" class="tab-content">
+                <h2>Propuestas de Mejora del Equipo</h2>
+
+                <div class="proposal-card">
+                    <div class="proposal-title">P-01: Automatizar proceso de reembolsos completo</div>
+                    <div class="proposal-meta">
+                        <span class="proposal-tag tag-type">Automatización</span>
+                        <span class="proposal-tag tag-impact">
+                            <span class="impact-stars">⭐⭐⭐⭐⭐</span> Impacto Alto
+                        </span>
+                    </div>
+                    <p style="margin-top: 10px;">Automatizar registro en Retool + envío masivo de macro + cierre masivo de tickets. Reducción estimada: 40-60% del tiempo administrativo.</p>
+                    <p style="margin-top: 8px; color: #666;"><strong>Proponentes:</strong> Juan Angulo, Joalbert Urbina, Edith Ramirez, Andrea Moreno</p>
+                </div>
+
+                <div class="proposal-card">
+                    <div class="proposal-title">P-02: Checklist estandarizado de escalado L1→L2</div>
+                    <div class="proposal-meta">
+                        <span class="proposal-tag tag-type">Proceso / Calidad</span>
+                        <span class="proposal-tag tag-impact">
+                            <span class="impact-stars">⭐⭐⭐⭐⭐</span> Impacto Alto
+                        </span>
+                    </div>
+                    <p style="margin-top: 10px;">Formulario obligatorio con datos mínimos por tipo de caso. Resuelve el 70% de las pausas de tickets sin inversión tecnológica.</p>
+                    <p style="margin-top: 8px; color: #666;"><strong>Proponentes:</strong> Dailet Rodriguez, Victoria Sandoval, múltiples</p>
+                </div>
+
+                <div class="proposal-card">
+                    <div class="proposal-title">P-03: Protocolo de Resolución por Silencio Administrativo</div>
+                    <div class="proposal-meta">
+                        <span class="proposal-tag tag-type">Proceso / Política</span>
+                        <span class="proposal-tag tag-impact">
+                            <span class="impact-stars">⭐⭐⭐⭐</span> Impacto Medio-Alto
+                        </span>
+                    </div>
+                    <p style="margin-top: 10px;">Autorizar resolución autónoma tras 10-15 días sin respuesta de aliados. Elimina limbo de tickets perpetuamente abiertos.</p>
+                    <p style="margin-top: 8px; color: #666;"><strong>Proponente:</strong> Nebraska Alen</p>
+                </div>
+
+                <div class="proposal-card">
+                    <div class="proposal-title">P-04: Canal directo con aliados (Slack)</div>
+                    <div class="proposal-meta">
+                        <span class="proposal-tag tag-type">Comunicación</span>
+                        <span class="proposal-tag tag-impact">
+                            <span class="impact-stars">⭐⭐⭐⭐</span> Impacto Medio-Alto
+                        </span>
+                    </div>
+                    <p style="margin-top: 10px;">Canales compartidos con aliados clave. Reduce días de espera a minutos en casos simples.</p>
+                    <p style="margin-top: 8px; color: #666;"><strong>Proponente:</strong> Nebraska Alen</p>
+                </div>
+
+                <div class="proposal-card">
+                    <div class="proposal-title">P-05: Bandeja segmentada por estado de ticket</div>
+                    <div class="proposal-meta">
+                        <span class="proposal-tag tag-type">UX / Workflow</span>
+                        <span class="proposal-tag tag-impact">
+                            <span class="impact-stars">⭐⭐⭐⭐</span> Impacto Medio-Alto
+                        </span>
+                    </div>
+                    <p style="margin-top: 10px;">Vistas separadas para tickets nuevos vs. en espera. Bajo esfuerzo, alto impacto en organización diaria.</p>
+                    <p style="margin-top: 8px; color: #666;"><strong>Proponente:</strong> Jorge Rojas</p>
+                </div>
+
+                <div class="chart-container" style="height: 400px; margin-top: 30px;">
+                    <canvas id="proposalsChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Roadmap Tab -->
+            <div id="roadmap" class="tab-content">
+                <h2>Roadmap de Mejoras Recomendado</h2>
+
+                <div class="roadmap-timeline">
+                    <div class="roadmap-item">
+                        <span class="roadmap-phase phase-immediate">🔥 INMEDIATO (1-3 semanas)</span>
+                        <h3 style="margin: 15px 0 10px 0;">Fase 1: Mejoras de Proceso</h3>
+                        <ul style="margin-left: 20px; line-height: 1.8;">
+                            <li><strong>Checklist obligatorio</strong> de datos para escalado L1→L2 por proceso</li>
+                            <li><strong>Recapacitación de L1</strong> en diagnóstico y categorización</li>
+                            <li><strong>Vistas segmentadas en Intercom:</strong> tickets nuevos vs. en espera</li>
+                        </ul>
+                        <p style="margin-top: 10px; color: #666;"><strong>Responsables:</strong> Líder L1 + Equipo de Capacitación + Producto</p>
+                    </div>
+
+                    <div class="roadmap-item">
+                        <span class="roadmap-phase phase-short">📅 CORTO PLAZO (2-4 semanas)</span>
+                        <h3 style="margin: 15px 0 10px 0;">Fase 2: Automatización de Reembolsos</h3>
+                        <ul style="margin-left: 20px; line-height: 1.8;">
+                            <li><strong>Automatizar registro</strong> de reembolsos en Retool con captura de links</li>
+                            <li><strong>Envío masivo personalizado</strong> de macro 'Reembolso / Agregado al lote'</li>
+                            <li><strong>Cierre masivo</strong> de tickets en Intercom</li>
+                        </ul>
+                        <p style="margin-top: 10px; color: #666;"><strong>Responsables:</strong> Equipo de Desarrollo + Producto</p>
+                    </div>
+
+                    <div class="roadmap-item">
+                        <span class="roadmap-phase phase-medium">📋 MEDIANO PLAZO (4-8 semanas)</span>
+                        <h3 style="margin: 15px 0 10px 0;">Fase 3: Gestión de Aliados y Herramientas</h3>
+                        <ul style="margin-left: 20px; line-height: 1.8;">
+                            <li><strong>Canal directo de comunicación</strong> con aliados clave (Slack compartido)</li>
+                            <li><strong>Directorio centralizado</strong> de aliados con razón social, RIF y nombre comercial</li>
+                            <li><strong>Protocolo de Resolución por Silencio Administrativo</strong> (validación Legal/Riesgo)</li>
+                        </ul>
+                        <p style="margin-top: 10px; color: #666;"><strong>Responsables:</strong> Gerencia Comercial/Operaciones + Legal + TI</p>
+                    </div>
+                </div>
+
+                <div class="key-insight" style="margin-top: 30px;">
+                    <strong>🎯 Priorización Estratégica</strong>
+                    <ol style="margin-left: 20px; margin-top: 15px; line-height: 1.8;">
+                        <li><strong>Calidad del escalado:</strong> Mayor ROI - resuelve 70% de pausas sin inversión tecnológica</li>
+                        <li><strong>Automatización de reembolsos:</strong> +2,000 casos/mes = impacto masivo por minuto ahorrado</li>
+                        <li><strong>Gestión de aliados:</strong> Corta dependencia que paraliza tickets completos</li>
+                        <li><strong>Optimización de herramientas:</strong> Bajo costo, alto impacto en el día a día</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Chart.js Global Configuration for Dark Theme
+        Chart.defaults.color = '#cbd5e1';
+        Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.1)';
+        Chart.defaults.plugins.legend.labels.color = '#cbd5e1';
+        Chart.defaults.plugins.title.color = '#f1f5f9';
+        Chart.defaults.scale.grid.color = 'rgba(255, 255, 255, 0.05)';
+
+        // Tab Navigation
+        function showTab(tabName) {
+            const tabs = document.querySelectorAll('.tab');
+            const contents = document.querySelectorAll('.tab-content');
+            
+            tabs.forEach(tab => tab.classList.remove('active'));
+            contents.forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        // Toggle Details
+        function toggleDetails(element) {
+            const details = element.querySelector('.details');
+            if (details.style.display === 'none' || details.style.display === '') {
+                details.style.display = 'block';
+            } else {
+                details.style.display = 'none';
+            }
+        }
+
+        // Process Distribution Chart
+        const processCtx = document.getElementById('processChart').getContext('2d');
+        new Chart(processCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Pagos No Encontrados', 'Reembolsos', 'GOC', 'Pagos Otros Bancos', 'Cashea Online'],
+                datasets: [{
+                    data: [3, 4, 2, 2, 2],
+                    backgroundColor: [
+                        '#6366f1',
+                        '#8b5cf6',
+                        '#ec4899',
+                        '#14b8a6',
+                        '#f59e0b'
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#0a0e27'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            font: {
+                                size: 12,
+                                family: 'Inter'
+                            }
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Analistas por Proceso',
+                        font: { 
+                            size: 16,
+                            weight: '600',
+                            family: 'Inter'
+                        },
+                        padding: 20
+                    }
+                }
+            }
+        });
+
+        // Friction Frequency Chart
+        const frictionCtx = document.getElementById('frictionChart').getContext('2d');
+        new Chart(frictionCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Escalados incompletos', 'Dependencia terceros', 'Tareas manuales', 'Lentitud herramientas', 'Sin segmentación', 'Sin verificación'],
+                datasets: [{
+                    label: 'Analistas que reportaron',
+                    data: [10, 4, 6, 7, 1, 2],
+                    backgroundColor: [
+                        '#ef4444',
+                        '#ef4444',
+                        '#f59e0b',
+                        '#f59e0b',
+                        '#3b82f6',
+                        '#3b82f6'
+                    ],
+                    borderRadius: 8,
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    title: {
+                        display: true,
+                        text: 'Frecuencia de Puntos de Fricción',
+                        font: { 
+                            size: 16,
+                            weight: '600',
+                            family: 'Inter'
+                        },
+                        padding: 20
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 13,
+                        ticks: {
+                            stepSize: 1,
+                            font: {
+                                family: 'Inter'
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.05)'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: {
+                                family: 'Inter',
+                                size: 11
+                            }
+                        },
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // Proposals Impact Chart
+        const proposalsCtx = document.getElementById('proposalsChart').getContext('2d');
+        new Chart(proposalsCtx, {
+            type: 'radar',
+            data: {
+                labels: ['Automatización reembolsos', 'Checklist escalado', 'Silencio admin.', 'Canal aliados', 'Bandeja segmentada', 'Recapacitación L1', 'Herramienta verificación'],
+                datasets: [{
+                    label: 'Impacto Estimado',
+                    data: [5, 5, 4, 4, 4, 4, 3],
+                    backgroundColor: 'rgba(99, 102, 241, 0.2)',
+                    borderColor: '#6366f1',
+                    borderWidth: 3,
+                    pointBackgroundColor: '#6366f1',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: '#8b5cf6',
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        max: 5,
+                        ticks: {
+                            stepSize: 1,
+                            backdropColor: 'transparent',
+                            font: {
+                                family: 'Inter'
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        angleLines: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        pointLabels: {
+                            font: {
+                                family: 'Inter',
+                                size: 11
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Impacto Estimado de Propuestas (⭐ 1-5)',
+                        font: { 
+                            size: 16,
+                            weight: '600',
+                            family: 'Inter'
+                        },
+                        padding: 20
+                    },
+                    legend: {
+                        labels: {
+                            font: {
+                                family: 'Inter'
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
